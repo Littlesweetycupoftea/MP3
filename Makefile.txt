@@ -1,3 +1,3 @@
 mp3.exe: Plaier.c
-	gcc Plaier.c -o mp3.exe
+	gcc Player.c -o mp3.exe
  
