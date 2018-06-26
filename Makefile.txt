@@ -1,3 +1,0 @@
-Player.o: Player.c
-	gcc Player.c -o Player.o
- 
