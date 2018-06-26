@@ -4,79 +4,80 @@
 #include <string.h>
 #include <stdlib.h>
 
-void switcher(int sign);
+void switcher(char *);
 void Welcome();
-void ShowMusic();
+void ShowMusic(char *);
+void PauseMusic();
 void StopMusic();
+void GetDir();
+
+char fileNames[MAX_PATH][MAX_PATH];
+char dir[MAX_PATH];
+int _sign=-1;
+char ispaused=0;
+
 
 int main(void) {
     Welcome();
-    ShowMusic();
-    char sign;
-    mkdir("YourMusic");
 
+    char sign[2];
+    sign[0]=0;
 
-    while (sign != 'Q') {
+    char s_char[2]="s";
+    char p_char[2]="p";
+    char d_char[2]="d";
+    char q_char[2]="q";
+
+    while (strcmp(sign,q_char) != 0)
+    {
         printf("Enter command: \n");
-        scanf("%s", & sign);
-        if (sign == 'L') {
-            ShowMusic();
-            continue;
-        }
-        if (sign == 'S') {
+        scanf("%s", sign);
+
+        if (strcmp(sign,s_char) == 0) {
             StopMusic();
             continue;
         }
-        switcher(sign);
+
+        if (strcmp(sign,p_char) == 0) {
+            PauseMusic();
+            continue;
+        }
+
+        if (strcmp(sign,d_char) == 0) {
+            GetDir();
+            continue;
+        }
+
+        if (strcmp(sign,q_char) != 0) {
+            switcher(sign);
+            continue;
+        }
     }
 
     return 0;
 }
 
 
-void switcher(int sign) {
-    switch (sign) {
-        case '1':
-            printf("Playing: Billy Idol - Rebel Yell\n");
-            mciSendString("play YourMusic/Billy_Idol_-_Rebel_Yell.mp3", NULL, 0, NULL);
-            break;
-
-        case '2':
-            printf("Playing: Brahms Johannes - Hungarian dance 5\n");
-            mciSendString("play YourMusic/Brahms_Johannes_-_Hungarian_dance_5.mp3", NULL, 0, NULL);
-            break;
-
-        case '3':
-            printf("Playing: Nauchno-Technicheskiy rap - C\n");
-            mciSendString("play YourMusic/Nauchno-Technicheskiy_rap_-_C.mp3", NULL, 0, NULL);
-            break;
-
-        case '4':
-            printf("Playing: RSAC - Tak sebe obmen\n");
-            mciSendString("play YourMusic/RSAC_-_Tak_sebe_obmen.mp3", NULL, 0, NULL);
-            break;
-
-        case '5':
-            printf("Playing: Simple Plan - Astronaut\n");
-            mciSendString("play YourMusic/Simple_Plan_-_Astronaut.mp3", NULL, 0, NULL);
-            break;
-
-        case '6':
-            printf("Playing: The Offspring - Dirty Magic\n");
-            mciSendString("play YourMusic/The_Offspring_-_Dirty_Magic.mp3", NULL, 0, NULL);
-            break;
-
-        default:
-            break;
+void switcher(char *sign) {
+    if(_sign!=-1 && ispaused!=1) {
+            StopMusic();
     }
+    ispaused=0;
+    _sign = atoi(sign);
+    printf("Playing: %s\n",fileNames[_sign]);
+    char command[MAX_PATH];
+    sprintf(command,"play %s/%s",dir,fileNames[_sign]);
+    mciSendString(command, NULL, 0, NULL);
 }
 
-void ShowMusic() {
+void ShowMusic(char *str) {
     printf("******************************\n");
     printf("List\n");
     WIN32_FIND_DATA FindFileData;
-    HANDLE hf = FindFirstFile("YourMusic/*", & FindFileData);
-    char fileNames[200][MAX_PATH];
+    char path[MAX_PATH];
+    sprintf(path,"%s/*",str);
+    HANDLE hf = FindFirstFile(path, & FindFileData);
+
     int i = 1;
     if (hf == INVALID_HANDLE_VALUE) {
         puts("Path not found");
@@ -94,18 +95,32 @@ void ShowMusic() {
 void Welcome() {
     printf("******************************\n");
     printf("* Welcome to MP3 player *\n");
-    printf("* L - Show Music *\n");
-    printf("* S - Stop Music *\n");
+    printf("* d - Choose a directory with music *\n");
+    printf("* p - Pause Music *\n");
+    printf("* s - Stop Music *\n");
     printf("* 1, 2... - number of song *\n");
-    printf("* Q - Quit *\n");
+    printf("* q - Quit *\n");
+}
+
+void PauseMusic() {
+    printf("playing paused\n");
+    ispaused=1;
+    char command[MAX_PATH];
+    sprintf(command,"pause %s/%s",dir,fileNames[_sign]);
+    mciSendString(command, NULL, 0, NULL);
 }
 
 void StopMusic() {
-    printf("playing paused\n");
-    mciSendString("pause YourMusic/Nauchno-Technicheskiy_rap_-_C.mp3", NULL, 0, NULL);
-    mciSendString("pause YourMusic/Billy_Idol_-_Rebel_Yell.mp3", NULL, 0, NULL);
-    mciSendString("pause YourMusic/RSAC_-_Tak_sebe_obmen.mp3", NULL, 0, NULL);
-    mciSendString("pause YourMusic/The_Offspring_-_Dirty_Magic.mp3", NULL, 0, NULL);
-    mciSendString("pause YourMusic/Brahms_Johannes_-_Hungarian_dance_5.mp3", NULL, 0, NULL);
-    mciSendString("pause YourMusic/Simple_Plan_-_Astronaut.mp3", NULL, 0, NULL);
+    printf("playing stopped\n");
+    ispaused=0;
+    char command[MAX_PATH];
+    sprintf(command,"stop %s/%s",dir,fileNames[_sign]);
+    mciSendString(command, NULL, 0, NULL);
 }
+
+void GetDir() {
+    printf("Type a directory with music\n");
+    scanf("%s",dir);
+    ShowMusic(dir);
+}
+
